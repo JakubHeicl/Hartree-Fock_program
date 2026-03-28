@@ -71,7 +71,7 @@ The solver currently supports:
 - `6-31++G**`
 - `6-311+G`
 
-but the sets can be easily extended in the JSON format for example from [text](https://www.basissetexchange.org/). Note that not all of the types of Gaussian functions present might be compatible tho. You can also print the available basis names from the CLI:
+but the sets can be easily extended in the JSON format for example from https://www.basissetexchange.org/. Note that not all of the types of Gaussian functions present might be compatible tho. You can also print the available basis names from the CLI:
 
 ```bash
 python HF_program.py --showb True
