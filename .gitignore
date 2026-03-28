@@ -1,8 +1,6 @@
 __pycache__
 viz_out
-*.xyz
 *.com
-*.out
 *.log
 *.npz
 visualization.py
