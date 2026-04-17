@@ -4,3 +4,4 @@ viz_out
 *.log
 *.npz
 visualization.py
+old_qchpy

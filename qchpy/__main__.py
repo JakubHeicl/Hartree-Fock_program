@@ -1,9 +1,8 @@
-from SCF import SCF
-from SCFLogger import SCFLogger
-from utils import read_xyz
 import argparse
 from pathlib import Path
-from basis_set import BASIS_SETS_FILENAMES
+
+from .basis_set import BASIS_SETS_FILENAMES
+from .hf import prepare_rhf, rhf
 
 #-------------INPUT PARAMETRES------------------------------------------------------------------------------------------
 INPUT_FILE: str         = None             # Input geometry file in .xyz format
@@ -18,6 +17,8 @@ P_TOL: float            = 1e-6             # Maximum density error tolerance p_r
 MAXIT: int              = 50               # Maximum number of iterations of the SCF cycle
 DAMPING: float          = 0.1              # Value of damping used in the SCF cycle, new density is computed as: P = (1.0 - DAMPING)*P_new + DAMPING*P_old
 OUTPUT_FILE: str | None = None             # Output file of the program. If None is specified, then case.out output file is created
+
+RHF: bool              = True             # If set to True, the program runs restricted Hartree-Fock (RHF) calculations
 #-----------------------------------------------------------------------------------------------------------------------
 
 #------------AVAILABLE BASIS SETS---------------------------------------------------------------------------------------
@@ -36,28 +37,9 @@ parser.add_argument("--ptol", default = P_TOL, type = float, help = "Maximum den
 parser.add_argument("--maxit", default = MAXIT, type = int, help = "Maximum number of iterations of the SCF cycle")
 parser.add_argument("--damping", default = DAMPING, type = float, help = "Value of damping used in the SCF cycle, new density is then computed as: P = (1.0 - damping)*P_new + damping*P_old")
 parser.add_argument("--output", default = OUTPUT_FILE, type = str, help = "Output file of the program. If None is specified, then case.out output file is created")
+parser.add_argument("--rhf", default = RHF, action = "store_true", help = "If set to true, the program runs restricted Hartree-Fock (RHF) calculations")
 
-def HF_program(xyz_filename: str, basis_type:str, n_elec: int | None = None, e_tol: float = 1e-8, p_rms_tol: float = 1e-6, maxiter: int = 50, damping: float = 0.1, out_filename: str | None = None) -> None:
-
-    _, Zs, coors = read_xyz(xyz_filename)
-
-    atoms = []
-    for Z, coor in zip(Zs, coors):
-        atoms.append((Z, coor))
-
-    if n_elec is None:
-        n_elec = sum(Zs)
-
-    if out_filename is None:
-         stem = Path(xyz_filename).stem
-         out_filename = f"{stem}.out"
-
-    logger = SCFLogger(xyz_filename, out_filename)
-    scf = SCF(atoms, basis_type, n_elec, logger, e_tol, p_rms_tol, maxiter, damping)
-
-    scf.run()
-
-if __name__ in {"__main__", "__mp_main__"}:
+if __name__ == "__main__":
 
     args = parser.parse_args([] if "__file__" not in globals() else None)
 
@@ -73,11 +55,6 @@ if __name__ in {"__main__", "__mp_main__"}:
     if args.basis.upper() not in BASIS_SETS_FILENAMES:
         raise RuntimeError(f"I do not know this basis set type yet: {args.basis}. Try running the program with --showb=True to see the available basis set types")
 
-    HF_program(xyz_filename=args.input,
-               basis_type=args.basis.upper(),
-               n_elec=args.nelec,
-               e_tol=args.etol,
-               p_rms_tol=args.ptol,
-               maxiter=args.maxit,
-               damping=args.damping,
-               out_filename=args.output)
+    if args.rhf:
+        basis, atoms, n_elec = prepare_rhf(args.input, args.basis, args.nelec)
+        rhf(basis.cgtos, atoms, n_elec, args.maxit, args.damping, args.etol, args.ptol)

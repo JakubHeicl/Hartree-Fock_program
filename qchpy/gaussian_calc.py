@@ -1,15 +1,21 @@
 import numpy as np
 from dataclasses import dataclass, field
-from utils import norm2, primitive_norm, F_n
-import time
 from functools import lru_cache
 
-vec3 = np.ndarray
+from .utils import norm2, double_factorial, F_n
+
+def primitive_norm(alpha: float, ang: tuple[int, int, int]) -> float:
+    i, j, k = ang
+    alpha = alpha
+    denom = double_factorial(2 * i - 1) * double_factorial(2 * j - 1) * double_factorial(2 * k - 1)
+    pref = (2 * alpha / np.pi) ** (3 / 4)
+    ang_part = (4 * alpha) ** ((i + j + k) / 2) / np.sqrt(denom)
+    return float(pref * ang_part)
 
 @dataclass
 class PrimitiveGaussian:
     alpha: float
-    center: vec3
+    center: np.ndarray
     ang: tuple[int, int, int]
     coeff: float
     norm: float = field(init=False)
@@ -19,7 +25,7 @@ class PrimitiveGaussian:
 
 @dataclass
 class ContractedGaussian:
-    center: vec3
+    center: np.ndarray
     ang: tuple[int, int, int]
     primitives: list[PrimitiveGaussian] = field(default_factory=list)
     _norm: float | None = None
@@ -52,8 +58,7 @@ class ContractedGaussian:
         else:
             return self._norm
 
-
-def productAB(A: PrimitiveGaussian, B: PrimitiveGaussian) -> tuple[float, float, float, vec3]:
+def productAB(A: PrimitiveGaussian, B: PrimitiveGaussian) -> tuple[float, float, float, np.ndarray]:
     """
     :param A: G_A
     :type A: PrimitiveGaussian
@@ -146,7 +151,7 @@ def kinetic_pgto(A: PrimitiveGaussian, B: PrimitiveGaussian) -> float:
 
     return (Tij*Skl*Smn + Sij*Tkl*Smn + Sij*Skl*Tmn)*A.norm*B.norm
 
-def nucatr_pgto(A: PrimitiveGaussian, B: PrimitiveGaussian, C: vec3) -> float:
+def nucatr_pgto(A: PrimitiveGaussian, B: PrimitiveGaussian, C: np.ndarray) -> float:
     """
     :param A: G_A
     :type A: PrimitiveGaussian
@@ -352,7 +357,7 @@ def kinetic_cgto(A: ContractedGaussian, B: ContractedGaussian) -> float:
 
     return S*A.norm*B.norm
 
-def nucatr_cgto(A: ContractedGaussian, B: ContractedGaussian, C: vec3) -> float:
+def nucatr_cgto(A: ContractedGaussian, B: ContractedGaussian, C: np.ndarray) -> float:
 
     S = 0
 

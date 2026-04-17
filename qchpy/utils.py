@@ -65,14 +65,6 @@ def double_factorial(n: int) -> int:
         k -= 2
     return out
 
-def primitive_norm(alpha: float, ang: tuple[int, int, int]) -> float:
-    i, j, k = ang
-    alpha = alpha
-    denom = double_factorial(2 * i - 1) * double_factorial(2 * j - 1) * double_factorial(2 * k - 1)
-    pref = (2 * alpha / np.pi) ** (3 / 4)
-    ang_part = (4 * alpha) ** ((i + j + k) / 2) / np.sqrt(denom)
-    return float(pref * ang_part)
-
 def read_xyz(filename: str, to_bohr: bool = True) -> tuple[int, list[int], list[vec3]]:
     """
     :param filename: Filename of the .xyz file

@@ -1,30 +1,34 @@
 import numpy as np
 from dataclasses import dataclass, field
-from gaussian import *
 import json
-from utils import cartesian_tuples
+from pathlib import Path
 
-BASIS_SETS_FILENAMES = {"STO-2G": "basis_sets/sto-2g.txt",
-                        "STO-3G": "basis_sets/sto-3g.txt",
-                        "STO-4G": "basis_sets/sto-4g.txt",
-                        "STO-5G": "basis_sets/sto-5g.txt",
-                        "STO-6G": "basis_sets/sto-6g.txt",
-                        "3-21G": "basis_sets/3-21g.txt",
-                        "6-21G": "basis_sets/6-21g.txt",
-                        "6-31G": "basis_sets/6-31g.txt",
-                        "6-311G": "basis_sets/6-311g.txt",
-                        "6-31++G": "basis_sets/6-31++g.txt",
-                        "6-31++G**": "basis_sets/6-31++gss.txt",
-                        "6-311+G": "basis_sets/6-311+g.txt"}
+from .utils import cartesian_tuples
+from .gaussian_calc import *
+
+BASIS_SETS_DIR = Path(__file__).parent / "basis_sets"
+
+BASIS_SETS_FILENAMES = {"STO-2G":       Path(BASIS_SETS_DIR, "sto-2g.txt"),
+                        "STO-3G":       Path(BASIS_SETS_DIR, "sto-3g.txt"),
+                        "STO-4G":       Path(BASIS_SETS_DIR, "sto-4g.txt"),
+                        "STO-5G":       Path(BASIS_SETS_DIR, "sto-5g.txt"),
+                        "STO-6G":       Path(BASIS_SETS_DIR, "sto-6g.txt"),
+                        "3-21G":        Path(BASIS_SETS_DIR, "3-21g.txt"),
+                        "6-21G":        Path(BASIS_SETS_DIR, "6-21g.txt"),
+                        "6-31G":        Path(BASIS_SETS_DIR, "6-31g.txt"),
+                        "6-311G":       Path(BASIS_SETS_DIR, "6-311g.txt"),
+                        "6-31++G":      Path(BASIS_SETS_DIR, "6-31++g.txt"),
+                        "6-31++G**":    Path(BASIS_SETS_DIR, "6-31++gss.txt"),
+                        "6-311+G":      Path(BASIS_SETS_DIR, "6-311+g.txt")}
 
 @dataclass
-class BasisSet:
+class Basis:
     cgtos: list[ContractedGaussian] = field(default_factory=list)
 
     def add_cgto(self, cgto: ContractedGaussian) -> None:
         self.cgtos.append(cgto)
 
-def build_basis_set(atoms: list[tuple[int, vec3]], basis_type: str) -> BasisSet:
+def build_basis_set(atoms: list[tuple[int, np.ndarray]], basis_type: str) -> Basis:
     
     if basis_type not in BASIS_SETS_FILENAMES:
         raise RuntimeError(f"I do not know this basis set type: {basis_type}")
@@ -34,7 +38,7 @@ def build_basis_set(atoms: list[tuple[int, vec3]], basis_type: str) -> BasisSet:
 
     elements_file = basis_set_file.get("elements", {})
 
-    bs = BasisSet()
+    bs = Basis()
 
     for atom in atoms:
 
